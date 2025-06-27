@@ -9,8 +9,10 @@ import { toast } from '@/hooks/use-toast.ts'
 import { supabase } from '@/lib/Auth.ts'
 import { expansions, getCardById } from '@/lib/CardsDB'
 import { UserContext } from '@/lib/context/UserContext.ts'
+import { getCardNameByLang } from '@/lib/utils'
 import type { AccountRow, Card, CollectionRow, Rarity } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
+import i18n from 'i18next'
 import { CircleHelp } from 'lucide-react'
 import { type FC, useContext, useEffect, useState } from 'react'
 import { useMemo } from 'react'
@@ -176,6 +178,19 @@ const TradeMatches: FC<Props> = ({ ownedCards, friendCards, ownAccount, friendAc
     }
   }
 
+  const getCardImagePath = (card: Card) => {
+    const langCode = i18n.language.split('-')[0].toUpperCase()
+    const baseName = card.image
+      ?.split('/')
+      .at(-1)
+      ?.replace(/_[A-Z]{2}\.webp$/, `_${langCode}.webp`)
+    return `/images/${i18n.language}/${baseName}`
+  }
+
+  const getCardImageFallback = (card: Card) => {
+    return `/images/en-US/${card.image?.split('/').at(-1)}`
+  }
+
   const tradeMatchesContent = () => {
     if (ownCollection) {
       return (
@@ -281,15 +296,49 @@ const TradeMatches: FC<Props> = ({ ownedCards, friendCards, ownAccount, friendAc
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h4 className="text-md font-medium mb-2">{t('friendHas')}</h4>
-                <div className="border rounded p-2 max-h-60 overflow-y-auto">
-                  <ul className="space-y-1">
+                <div className="border rounded p-3 max-h-60 overflow-y-auto">
+                  <ul className="space-y-2">
                     {friendExtraCards[rarity].map((card) => (
-                      <li key={card.card_id} className="flex justify-between">
-                        <span className="flex items-center">
-                          <span className="min-w-14 me-4">{card.card_id} </span>
-                          <span>{card.name}</span>
-                        </span>
-                        <span title="Amount you own" className="text-gray-500">
+                      <li key={card.card_id} className="flex items-center justify-between py-1">
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <img
+                              src={getCardImagePath(card)}
+                              alt={getCardNameByLang(card, i18n.language)}
+                              className="w-8 h-11 object-cover rounded border cursor-pointer transition-transform hover:scale-110"
+                              data-tooltip-id={`friend-card-tooltip-${rarity}-${card.card_id}`}
+                              onError={(e) => {
+                                ;(e.target as HTMLImageElement).src = getCardImageFallback(card)
+                              }}
+                            />
+                            <Tooltip
+                              id={`friend-card-tooltip-${rarity}-${card.card_id}`}
+                              place="right"
+                              border="none"
+                              style={{
+                                backgroundColor: 'transparent',
+                                padding: '0',
+                                zIndex: 1000,
+                              }}
+                            >
+                              <div className="card-hover-tooltip">
+                                <img
+                                  src={getCardImagePath(card)}
+                                  alt={getCardNameByLang(card, i18n.language)}
+                                  className="w-32 h-auto rounded-lg shadow-lg"
+                                  onError={(e) => {
+                                    ;(e.target as HTMLImageElement).src = getCardImageFallback(card)
+                                  }}
+                                />
+                              </div>
+                            </Tooltip>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{card.name}</span>
+                            <span className="text-xs text-gray-400">{card.card_id}</span>
+                          </div>
+                        </div>
+                        <span title="Amount you own" className="text-gray-500 text-sm">
                           <span style={{ userSelect: 'none' }}>×{ownedCards.find((c) => c.card_id === card.card_id)?.amount_owned || 0}</span>
                         </span>
                       </li>
@@ -299,15 +348,49 @@ const TradeMatches: FC<Props> = ({ ownedCards, friendCards, ownAccount, friendAc
               </div>
               <div>
                 <h4 className="text-md font-medium mb-2">{t('youHave')}</h4>
-                <div className="border rounded p-2 max-h-60 overflow-y-auto">
-                  <ul className="space-y-1">
+                <div className="border rounded p-3 max-h-60 overflow-y-auto">
+                  <ul className="space-y-2">
                     {userExtraCards[rarity].map((card) => (
-                      <li key={card.card_id} className="flex justify-between">
-                        <span className="flex items-center">
-                          <span className="min-w-14 me-4">{card.card_id} </span>
-                          <span>{card.name}</span>
-                        </span>
-                        <span title="Amount your friend owns" className="text-gray-500">
+                      <li key={card.card_id} className="flex items-center justify-between py-1">
+                        <div className="flex items-center gap-3">
+                          <div className="relative">
+                            <img
+                              src={getCardImagePath(card)}
+                              alt={getCardNameByLang(card, i18n.language)}
+                              className="w-8 h-11 object-cover rounded border cursor-pointer transition-transform hover:scale-110"
+                              data-tooltip-id={`user-card-tooltip-${rarity}-${card.card_id}`}
+                              onError={(e) => {
+                                ;(e.target as HTMLImageElement).src = getCardImageFallback(card)
+                              }}
+                            />
+                            <Tooltip
+                              id={`user-card-tooltip-${rarity}-${card.card_id}`}
+                              place="left"
+                              border="none"
+                              style={{
+                                backgroundColor: 'transparent',
+                                padding: '0',
+                                zIndex: 1000,
+                              }}
+                            >
+                              <div className="card-hover-tooltip">
+                                <img
+                                  src={getCardImagePath(card)}
+                                  alt={getCardNameByLang(card, i18n.language)}
+                                  className="w-32 h-auto rounded-lg shadow-lg"
+                                  onError={(e) => {
+                                    ;(e.target as HTMLImageElement).src = getCardImageFallback(card)
+                                  }}
+                                />
+                              </div>
+                            </Tooltip>
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{card.name}</span>
+                            <span className="text-xs text-gray-400">{card.card_id}</span>
+                          </div>
+                        </div>
+                        <span title="Amount your friend owns" className="text-gray-500 text-sm">
                           <span style={{ userSelect: 'none' }}>×{card.amount_owned}</span>
                         </span>
                       </li>
