@@ -9,7 +9,7 @@ import { toast } from '@/hooks/use-toast.ts'
 import { supabase } from '@/lib/Auth.ts'
 import { expansions, getCardById } from '@/lib/CardsDB'
 import { UserContext } from '@/lib/context/UserContext.ts'
-import { getCardNameByLang } from '@/lib/utils'
+import { getCardImageFallback, getCardImagePath, getCardNameByLang } from '@/lib/utils'
 import type { AccountRow, Card, CollectionRow, Rarity } from '@/types'
 import { zodResolver } from '@hookform/resolvers/zod'
 import i18n from 'i18next'
@@ -178,19 +178,6 @@ const TradeMatches: FC<Props> = ({ ownedCards, friendCards, ownAccount, friendAc
     }
   }
 
-  const getCardImagePath = (card: Card) => {
-    const langCode = i18n.language.split('-')[0].toUpperCase()
-    const baseName = card.image
-      ?.split('/')
-      .at(-1)
-      ?.replace(/_[A-Z]{2}\.webp$/, `_${langCode}.webp`)
-    return `/images/${i18n.language}/${baseName}`
-  }
-
-  const getCardImageFallback = (card: Card) => {
-    return `/images/en-US/${card.image?.split('/').at(-1)}`
-  }
-
   const tradeMatchesContent = () => {
     if (ownCollection) {
       return (
@@ -303,7 +290,7 @@ const TradeMatches: FC<Props> = ({ ownedCards, friendCards, ownAccount, friendAc
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             <img
-                              src={getCardImagePath(card)}
+                              src={getCardImagePath(card, i18n.language)}
                               alt={getCardNameByLang(card, i18n.language)}
                               className="w-8 h-11 object-cover rounded border cursor-pointer transition-transform hover:scale-110"
                               data-tooltip-id={`friend-card-tooltip-${rarity}-${card.card_id}`}
@@ -323,7 +310,7 @@ const TradeMatches: FC<Props> = ({ ownedCards, friendCards, ownAccount, friendAc
                             >
                               <div className="card-hover-tooltip">
                                 <img
-                                  src={getCardImagePath(card)}
+                                  src={getCardImagePath(card, i18n.language)}
                                   alt={getCardNameByLang(card, i18n.language)}
                                   className="w-32 h-auto rounded-lg shadow-lg"
                                   onError={(e) => {
@@ -355,7 +342,7 @@ const TradeMatches: FC<Props> = ({ ownedCards, friendCards, ownAccount, friendAc
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             <img
-                              src={getCardImagePath(card)}
+                              src={getCardImagePath(card, i18n.language)}
                               alt={getCardNameByLang(card, i18n.language)}
                               className="w-8 h-11 object-cover rounded border cursor-pointer transition-transform hover:scale-110"
                               data-tooltip-id={`user-card-tooltip-${rarity}-${card.card_id}`}
@@ -375,7 +362,7 @@ const TradeMatches: FC<Props> = ({ ownedCards, friendCards, ownAccount, friendAc
                             >
                               <div className="card-hover-tooltip">
                                 <img
-                                  src={getCardImagePath(card)}
+                                  src={getCardImagePath(card, i18n.language)}
                                   alt={getCardNameByLang(card, i18n.language)}
                                   className="w-32 h-auto rounded-lg shadow-lg"
                                   onError={(e) => {

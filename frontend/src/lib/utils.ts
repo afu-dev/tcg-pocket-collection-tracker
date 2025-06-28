@@ -42,3 +42,16 @@ export function getCardNameByLang(card: Card, lang: string): string {
 
   return card.name
 }
+
+export function getCardImagePath(card: Card, language: string): string {
+  const langCode = language.split('-')[0].toUpperCase()
+  const baseName = card.image
+    ?.split('/')
+    .at(-1)
+    ?.replace(/_[A-Z]{2}\.webp$/, `_${langCode}.webp`)
+  return `/images/${language}/${baseName}`
+}
+
+export function getCardImageFallback(card: Card): string {
+  return `/images/en-US/${card.image?.split('/').at(-1)}`
+}

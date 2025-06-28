@@ -1,4 +1,4 @@
-import { getCardNameByLang } from '@/lib/utils'
+import { getCardImageFallback, getCardImagePath, getCardNameByLang } from '@/lib/utils'
 import type { Card } from '@/types'
 import i18n from 'i18next'
 import { type CSSProperties, type Dispatch, type SetStateAction, useCallback, useRef, useState } from 'react'
@@ -62,12 +62,7 @@ function FancyCard({ selected, setIsSelected, card, size = 'default', clickable 
     height: size === 'small' ? '112px' : 'auto', // Adjust size based on prop
   }
 
-  const langCode = i18n.language.split('-')[0].toUpperCase()
-  const baseName = card.image
-    ?.split('/')
-    .at(-1)
-    ?.replace(/_[A-Z]{2}\.webp$/, `_${langCode}.webp`)
-  const imagePath = `/images/${i18n.language}/${baseName}`
+  const imagePath = getCardImagePath(card, i18n.language)
 
   return (
     <div
@@ -81,7 +76,7 @@ function FancyCard({ selected, setIsSelected, card, size = 'default', clickable 
         zIndex: isHovering ? 10 : 0,
       }}
     >
-      {baseName && (
+      {card.image && (
         <img
           draggable={false}
           loading="lazy"
@@ -94,7 +89,7 @@ function FancyCard({ selected, setIsSelected, card, size = 'default', clickable 
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onError={(e) => {
-            ;(e.target as HTMLImageElement).src = `/images/en-US/${card.image?.split('/').at(-1)}` // Default card image to English if localized image is missing
+            ;(e.target as HTMLImageElement).src = getCardImageFallback(card)
           }}
         />
       )}
